@@ -1,23 +1,98 @@
+# import pytest
+
+
+# @pytest.fixture
+# def firefox_options(firefox_options):
+#     firefox_options.binary = '/driver/firefox-bin'
+#     firefox_options.add_argument('-foreground')
+#     firefox_options.set_preference('browser.anchor_color', '#FF0000')
+#     return firefox_options
+
+
+# # def chrome_options(chrome_options):
+# #     chrome_options.binary_location = 'C:\Users\Max\PycharmProjects\modul24\.pytest_cache\Chrome\chromedriver.exe'
+# #     chrome_options.add_extension('/Chrome/chromedriver.exe')
+# #     chrome_options.add_argument('--kiosk')
+# #     return chrome_options
+
+
+# @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+# def pytest_runtest_makereport(item,  call):
+#     # This function helps to detect that some test failed
+#     # and pass this information to teardown:
+
+#     outcome = yield
+#     rep = outcome.get_result()
+#     setattr(item, "rep_" + rep.when, rep)
+#     return rep
+
+
+# def get_test_case_docstring(item):
+#     """ This function gets doc string from test case and format it
+#         to show this docstring instead of the test case name in reports.
+#     """
+
+#     full_name = ''
+
+#     if item._obj.__doc__:
+#         # Remove extra whitespaces from the doc string:
+#         name = str(item._obj.__doc__.split('.')[0]).strip()
+#         full_name = ' '.join(name.split())
+
+#         # Generate the list of parameters for parametrized test cases:
+#         if hasattr(item, 'callspec'):
+#             params = item.callspec.params
+
+#             res_keys = sorted([k for k in params])
+#             # Create List based on Dict:
+#             res = ['{0}_"{1}"'.format(k, params[k]) for k in res_keys]
+#             # Add dict with all parameters to the name of test case:
+#             full_name += ' Parameters ' + str(', '.join(res))
+#             full_name = full_name.replace(':', '')
+
+#     return full_name
+
+
+# def pytest_itemcollected(item):
+#     """ This function modifies names of test cases "on the fly"
+#         during the execution of test cases.
+#     """
+
+#     if item._obj.__doc__:
+#         item._nodeid = get_test_case_docstring(item)
+
+
+# def pytest_collection_finish(session):
+#     """ This function modified names of test cases "on the fly"
+#         when we are using --collect-only parameter for pytest
+#         (to get the full list of all existing test cases).
+#     """
+
+#     if session.config.option.collectonly is True:
+#         for item in session.items:
+#             # If test case has a doc string we need to modify it's name to
+#             # it's doc string to show human-readable reports and to
+#             # automatically import test cases to test management system.
+#             if item._obj.__doc__:
+#                 full_name = get_test_case_docstring(item)
+#                 print(full_name)
+
+#         pytest.exit('Done!')
+#
+
+#Для того, чтобы в нашей фикстуре мы узнали, как именно завершился тест (удачно или нет), мы используем способ, 
+# который в официальных рекомендациях к pytest называется "Making test result information available in fixtures".
+# Для этого мы добавляем вначале функцию pytest_runtest_makereport, которая добавляет к объекту request информацию о результатах теста.
+# Сейчас мы не будем подробно останавливаться на содержании этой функции, но оно стандартно и может быть использовано «как есть».
+# Главное, что мы должны вынести для себя — это возможность использовать проверку переменной request.node.rep_call.failed.
+# Не забывайте добавлять объект request ко входящим параметрам вашей фикстуры
+
 import pytest
-
-
-@pytest.fixture
-def firefox_options(firefox_options):
-    firefox_options.binary = '/driver/firefox-bin'
-    firefox_options.add_argument('-foreground')
-    firefox_options.set_preference('browser.anchor_color', '#FF0000')
-    return firefox_options
-
-
-# def chrome_options(chrome_options):
-#     chrome_options.binary_location = 'C:\Users\Max\PycharmProjects\modul24\.pytest_cache\Chrome\chromedriver.exe'
-#     chrome_options.add_extension('/Chrome/chromedriver.exe')
-#     chrome_options.add_argument('--kiosk')
-#     return chrome_options
+import uuid
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
-def pytest_runtest_makereport(item,  call):
+def pytest_runtest_makereport(item, call):
     # This function helps to detect that some test failed
     # and pass this information to teardown:
 
@@ -26,55 +101,30 @@ def pytest_runtest_makereport(item,  call):
     setattr(item, "rep_" + rep.when, rep)
     return rep
 
+@pytest.fixture
+def web_browser(request, selenium):
 
-def get_test_case_docstring(item):
-    """ This function gets doc string from test case and format it
-        to show this docstring instead of the test case name in reports.
-    """
+    browser = selenium
+    browser.set_window_size(1400, 1000)
 
-    full_name = ''
+    # Return browser instance to test case:
+    yield browser
 
-    if item._obj.__doc__:
-        # Remove extra whitespaces from the doc string:
-        name = str(item._obj.__doc__.split('.')[0]).strip()
-        full_name = ' '.join(name.split())
+    # Do teardown (this code will be executed after each test):
 
-        # Generate the list of parameters for parametrized test cases:
-        if hasattr(item, 'callspec'):
-            params = item.callspec.params
+    if request.node.rep_call.failed:
+        # Make the screen-shot if test failed:
+        try:
+            browser.execute_script("document.body.bgColor = 'white';")
 
-            res_keys = sorted([k for k in params])
-            # Create List based on Dict:
-            res = ['{0}_"{1}"'.format(k, params[k]) for k in res_keys]
-            # Add dict with all parameters to the name of test case:
-            full_name += ' Parameters ' + str(', '.join(res))
-            full_name = full_name.replace(':', '')
+            # Make screen-shot for local debug:
+            browser.save_screenshot('screenshots/' + str(uuid.uuid4()) + '.png')
 
-    return full_name
+            # For happy debugging:
+            print('URL: ', browser.current_url)
+            print('Browser logs:')
+            for log in browser.get_log('browser'):
+                print(log)
 
-
-def pytest_itemcollected(item):
-    """ This function modifies names of test cases "on the fly"
-        during the execution of test cases.
-    """
-
-    if item._obj.__doc__:
-        item._nodeid = get_test_case_docstring(item)
-
-
-def pytest_collection_finish(session):
-    """ This function modified names of test cases "on the fly"
-        when we are using --collect-only parameter for pytest
-        (to get the full list of all existing test cases).
-    """
-
-    if session.config.option.collectonly is True:
-        for item in session.items:
-            # If test case has a doc string we need to modify it's name to
-            # it's doc string to show human-readable reports and to
-            # automatically import test cases to test management system.
-            if item._obj.__doc__:
-                full_name = get_test_case_docstring(item)
-                print(full_name)
-
-        pytest.exit('Done!')
+        except:
+            pass # just ignore any errors here
