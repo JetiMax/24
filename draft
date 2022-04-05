@@ -1,0 +1,21 @@
+@pytest.fixture(autouse=True)
+def test_my_pets():
+    pytest.driver.find_element_by_id('email').send_keys('jetimax@yandex.ru')
+    pytest.driver.find_element_by_id('pass').send_keys('1725maksim')
+    pytest.driver.find_element_by_css_selector("//button[@type='submit']").click()
+    assert pytest.driver.find_element_by_tag_name('h1').text == "PetFriends"
+    pytest.driver.find_element_by_css_selector("div#navbarNav > ul > li > a").click()
+
+    images = pytest.driver.find_element_by_css_selector('div#all_my_pets > table > tbody > tr > th > img')
+    # name = pytest.driver.find_element_by_css_selector('div#all_my_pets > table > tr > td')
+    name = pytest.driver.find_element_by_xpath('//input[@id="фыв"]')
+    description = pytest.driver.find_element_by_css_selector('')
+
+    for i in range(len(name)):
+        assert images[i].get_atribute('src') !=''
+        assert name[i].text !=''
+        assert description[i].text !=''
+        assert ', ' in description[i]
+        parts = description[i].text.split(", ")
+        assert len(parts[0]) > 0
+        assert len(parts[1]) > 0
