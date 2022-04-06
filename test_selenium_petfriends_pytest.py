@@ -17,7 +17,9 @@
 import pickle
 import time
 from selenium import webdriver #подключение библиотеки
-driver = webdriver.Firefox() #получение объекта веб-драйвера для нужного браузера
+
+driver = webdriver.Chrome()   #получение объекта веб-драйвера для нужного браузера
+driver.get("https://petfriends1.herokuapp.com/new_user")
 
 
 def test_petfriends(selenium):
@@ -26,7 +28,7 @@ def test_petfriends(selenium):
     # Open PetFriends base page:
     selenium.get("https://petfriends1.herokuapp.com/")
 
-    time.sleep(10)  # just for demo purposes, do NOT repeat it on real projects!
+    time.sleep(5)  # just for demo purposes, do NOT repeat it on real projects!
 
     # Find the field for search text input:
     btn_newuser = selenium.find_element_by_xpath("//button[@onclick=\"document.location='/new_user';\"]")
@@ -39,12 +41,12 @@ def test_petfriends(selenium):
     field_email = selenium.find_element_by_id("email")
     field_email.click()
     field_email.clear()
-    field_email.send_keys("isaid.zx@gmail.com")
+    field_email.send_keys("jetimax@yandex.ru")
 
     field_pass = selenium.find_element_by_id("pass")
     field_pass.click()
     field_pass.clear()
-    field_pass.send_keys("qwerty1234")
+    field_pass.send_keys("1725maksim")
 
     btn_submit = selenium.find_element_by_xpath("//button[@type='submit']")
     btn_submit.click()
