@@ -12,21 +12,24 @@
 #  2) Install all requirements:
 #     pip install -r requirements.txt
 #  3) Run tests:
-#     python3 -m pytest -v --driver Chrome --driver-path /tests/chrome test_selenium_simple.py
-#
+#    pytest -v --driver Chrome --driver-path chrome/chromedriver.exe test_selenium_petfriends_pytest.py
+
+
+
 import pickle
-import time
 from selenium import webdriver #подключение библиотеки
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
+
 driver = webdriver.Chrome()   #получение объекта веб-драйвера для нужного браузера
+# driver.get("https://petfriends1.herokuapp.com/login")
+# element = WebDriverWait(driver, 15).until(
+#     EC.presence_of_element_located((By.ID, "email")))
+
+driver.implicitly_wait(10)
 driver.get("https://petfriends1.herokuapp.com/login")
-try:
-    element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(By.CSS_SELECTOR('input#email')))
-finally:
-    driver.quit()
+email = driver.find_element_by_id("email")
 
 
 def test_petfriends(selenium):
@@ -34,8 +37,6 @@ def test_petfriends(selenium):
 
     # Open PetFriends base page:
     selenium.get("https://petfriends1.herokuapp.com/")
-
-    #time.sleep(5)  # just for demo purposes, do NOT repeat it on real projects!
 
     # Find the field for search text input:
     btn_newuser = selenium.find_element_by_xpath("//button[@onclick=\"document.location='/new_user';\"]")
@@ -57,7 +58,6 @@ def test_petfriends(selenium):
 
     btn_submit = selenium.find_element_by_xpath("//button[@type='submit']")
     btn_submit.click()
-
 
     # Save cookies of the browser after the login
     with open('my_cookies.txt', 'wb') as cookies:
