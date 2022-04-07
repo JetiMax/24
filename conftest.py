@@ -41,7 +41,7 @@ def web_browser(request, selenium):
             print('URL: ', browser.current_url)
             print('Browser logs:')
             for log in browser.get_log('browser'):
-                print(log, "utf8")
+                print(log)
         except:
             pass  # just ignore any errors here
 
@@ -125,7 +125,6 @@ def test_my_pets():
         parts = description[i].text.split(", ")
         assert len(parts[0]) > 0
         assert len(parts[1]) > 0
-
 
 def api_v1():
     warnings.warn(DeprecationWarning("DeprecationWarning"))
